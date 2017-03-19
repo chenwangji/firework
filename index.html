@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>烟花原型写法</title>
+		<style type="text/css">
+			* {
+				margin: 0;
+				padding: 0;
+			}
+			body {
+				background: #000;
+				overflow: hidden;
+			}
+			.firework {
+				width: 4px;
+				height: 20px;
+				background: yellow;
+				border-radius: 2px;
+				position:absolute;
+				bottom: -20px;
+			}
+			.point {
+				width: 4px;
+				height: 4px;
+				border-radius: 2px;
+				position: absolute;
+			}
+		</style>
+		<script src="getStyle.js" type="text/javascript" charset="utf-8"></script>
+		<script src="moveMultiple.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript">
+			onload = function () {
+				
+				function getClientlength() {
+					return {
+						clientWidth:document.documentElement.clientWidth || document.body.clientWidth,
+						clientHeight:document.documentElement.clientHeight || document.body.clientHeight
+					}
+				}
+				
+				function randomColor() {
+					var red = parseInt(Math.random() * 256);
+					var green = parseInt(Math.random() * 256);
+					var blue  = parseInt(Math.random() * 256);
+					return "rgb(" + red + "," + green + "," + blue + ")";
+				}
+				
+				//firework构造函数
+				function Firework() {
+					var self = this;
+					self.ele = document.createElement("div");
+					self.ele.className = "firework";
+					
+					document.body.appendChild(self.ele);	
+				}
+				
+				//烟花原型fly方法
+				Firework.prototype.fly = function (x,y,callBack) {
+					var self = this;
+					self.ele.style.left = x + "px";
+					moveMultiple(self.ele,{top:y,height:4},function () {
+						document.body.removeChild(self.ele);
+						callBack(); //回调函数，firework消失时立即调用point对象的fading()方法
+					});
+				};
+				
+				//点构造函数
+				function Point() {
+					var self = this;
+					self.ele = document.createElement("div");
+					self.ele.className = "point";
+					document.body.appendChild(self.ele);
+				}
+
+				//点原型的fading方法
+				Point.prototype.fading = function (x,y) {
+					 var self = this;
+					 
+					 var dirX = Math.random() < 0.5 ? -1 : 1;
+					 var dirY = Math.random() < 0.5 ? -1 : 1;
+					 
+					 var speedX = dirX * parseInt(Math.random() * 10);
+					 var speedY = dirY * parseInt(Math.random() * 10);
+					 
+					 self.ele.style.background = randomColor();
+					 self.ele.style.left = x + "px";
+					 self.ele.style.top = y + "px";
+					 
+					 self.timer = setInterval(function () {
+					 	dirX > 0 ? speedX -= 0.01 : speedX += 0.01;
+					 	speedY += 1;
+					 	self.ele.style.left = speedX + self.ele.offsetLeft + "px";
+					 	self.ele.style.top = speedY + self.ele.offsetTop + "px";
+					 	
+					 	if(self.ele.offsetLeft <= 0 || self.ele.offsetLeft >= getClientlength().clientWidth - 4 || self.ele.offsetTop >= getClientlength().clientHeight - 4) {
+					 		document.body.removeChild(self.ele);
+					 		clearInterval(self.timer);
+					 	}
+					 },30);
+				};
+				//
+				
+				//主逻辑区----实例化
+				onclick = function (evt) {
+					var oEvent = evt || event;
+					//实例烟花对象
+					var oFirework = new Firework();
+					
+					oFirework.fly(oEvent.clientX,oEvent.clientY,function (){
+						
+						//在烟花的回调函数中实例化point对象
+						for(var i = 0; i < parseInt(Math.random() * 40 + 40); i++ ) {
+							var oPoint = new Point();
+							oPoint.fading(oEvent.clientX,oEvent.clientY);
+						}
+						
+					});
+					
+				};
+			};
+		</script>
+	</head>
+	<body>
+	</body>
+</html>
